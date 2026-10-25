@@ -1,0 +1,16 @@
+{
+  "name": "encrypted-transaction",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Post-quantum authenticated transaction envelope research implementation",
+  "engines": { "node": ">=24.7.0 <25" },
+  "exports": "./src/index.js",
+  "scripts": {
+    "test": "node --test --experimental-test-coverage",
+    "demo": "node scripts/demo.js",
+    "build": "node scripts/build.js",
+    "check": "node scripts/check.js"
+  },
+  "license": "MIT"
+}
