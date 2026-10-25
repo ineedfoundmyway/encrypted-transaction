@@ -12,7 +12,7 @@ The outer object contains exactly `header`, `kem`, `salt`, `iv`, `ciphertext`, `
 | messageId | Fresh random UUID produced by the sender |
 | issuedAt / expiresAt | Integer Unix milliseconds, lifetime at most 300000 ms |
 
-Header encoding is UTF-8 JSON of the ordered array `[suite,sender,recipient,signerKey,recipientKey,messageId,issuedAt,expiresAt]`. JSON object member order therefore does not change verification. Token fields permit ASCII alphanumeric plus `:._/-`, begin with alphanumeric and are at most 128 characters. Identity names and IDs are case-sensitive.
+Header encoding is UTF-8 JSON of the ordered array `[suite,sender,recipient,signerKey,recipientKey,messageId,issuedAt,expiresAt]`. JSON object member order therefore does not change verification. Identity names, message IDs and payload identifier fields permit ASCII alphanumeric plus `:._/-`, begin with alphanumeric and are at most 128 characters. Identity names and IDs are case-sensitive. Key fingerprints instead use canonical base64url SHA-256 values, including a leading hyphen or underscore, and must exactly match the trusted public keys.
 
 The domain is the UTF-8 byte string `encrypted-transaction/v1` followed by one NUL byte. ML-KEM-768 encapsulation produces a fresh shared secret and 1088-byte KEM ciphertext. HKDF-SHA-256 uses that secret, a random 32-byte salt, and `domain || encodedHeader` as info, producing 32 bytes. AES-256-GCM uses a random 12-byte IV, the encoded header as AAD and a 16-byte tag.
 
