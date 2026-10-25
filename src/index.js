@@ -147,7 +147,7 @@ export async function open(envelope, { recipient, trustedSender, replayStore, no
   const h = envelope.header;
   shape(h, ['suite', 'sender', 'recipient', 'signerKey', 'recipientKey', 'messageId', 'issuedAt', 'expiresAt']);
   requireValue(h.suite === SUITE, 'UNSUPPORTED_SUITE');
-  for (const field of ['sender', 'recipient', 'messageId', 'signerKey', 'recipientKey']) id(h[field]);
+  for (const field of ['sender', 'recipient', 'messageId']) id(h[field]);
   requireValue(h.recipient === recipient.name && h.recipientKey === recipient.recipientKey, 'RECIPIENT_MISMATCH');
   requireValue(h.sender === trustedSender.name && h.signerKey === fingerprint(trustedSender.signingKey), 'UNTRUSTED_SENDER');
   requireValue(trustedSender.signingKey.asymmetricKeyType === 'ml-dsa-65', 'KEY_TYPE');
