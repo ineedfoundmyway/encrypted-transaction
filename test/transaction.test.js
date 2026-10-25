@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { generateKeyPairSync, sign } from 'node:crypto';
-import { generateIdentity, SoftwareKeyProvider, MemoryReplayStore, validateTransaction, seal, open, SUITE } from '../src/index.js';
+import { generateIdentity, SoftwareKeyProvider, MemoryReplayStore, validateTransaction, seal, open, SUITE, fingerprint } from '../src/index.js';
 
 const alice = generateIdentity('alice');
 const bob = generateIdentity('bob');
@@ -116,4 +116,30 @@ test('reject downgrade key type and excessive TTL', async () => {
   await rejects(seal(tx, { ...sealOptions, ttlMs: 300_001 }), 'INVALID_INPUT');
   await rejects(seal(tx, { ...sealOptions, recipient: { name: 'bob', encryptionKey: generateKeyPairSync('x25519').publicKey } }), 'KEY_TYPE');
   assert.equal(envelope.header.suite, SUITE);
+});
+
+
+test('accept base64url key fingerprints beginning with a hyphen or underscore', async () => {
+  function leadingSymbolIdentity(name, purpose) {
+    for (let attempt = 0; attempt < 2048; attempt++) {
+      const identity = generateIdentity(name);
+      if (/^[-_]/.test(fingerprint(identity[purpose].publicKey))) return identity;
+    }
+    throw new Error('Could not generate a leading-symbol fingerprint');
+  }
+  const signingIdentity = leadingSymbolIdentity('alice', 'signing');
+  const receivingIdentity = leadingSymbolIdentity('bob', 'encryption');
+  const candidate = await seal(tx, {
+    sender: new SoftwareKeyProvider(signingIdentity),
+    recipient: { name: 'bob', encryptionKey: receivingIdentity.encryption.publicKey },
+    now,
+  });
+  assert.match(candidate.header.signerKey, /^[-_]/);
+  assert.match(candidate.header.recipientKey, /^[-_]/);
+  assert.deepEqual(await open(candidate, {
+    recipient: new SoftwareKeyProvider(receivingIdentity),
+    trustedSender: { name: 'alice', signingKey: signingIdentity.signing.publicKey },
+    replayStore: new MemoryReplayStore(),
+    now,
+  }), tx);
 });
